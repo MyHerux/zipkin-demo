@@ -1,0 +1,14 @@
+<configuration scan="true" scanPeriod="10 seconds">
+  <!--<property file="log.properties" />-->
+  <property name="log.home" value="logs" />
+  <!--<include resource="org/springframework/boot/logging/logback/defaults.xml"/>-->
+  <include resource="base_logback.xml"/>
+
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="APP"/>
+    <appender-ref ref="ERROR"/>
+    <appender-ref ref="JSON"/>
+  </root>
+
+</configuration>

@@ -1,0 +1,94 @@
+<included>
+
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+
+  <!-- pattern -->
+  <property name="log.default_pattern"
+    value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} |%line| %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+  <!-- maxHistory -->
+  <property name="log.default_max_history" value="30"/>
+
+
+  <!-- Appender to log to console -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${log.default_pattern}</pattern>
+      <charset>utf8</charset>
+    </encoder>
+  </appender>
+
+  <!-- Appender to log to app.log -->​
+  <appender name="APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.home}/app.log</file>
+    <encoder>
+      <pattern>${log.default_pattern}</pattern>
+      <charset>utf8</charset>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${log.home}/archives/app.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>${log.default_max_history}</maxHistory>
+    </rollingPolicy>
+  </appender>
+  ​
+  <!-- Appender to log to file in a JSON format-->
+  <appender name="JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.home}/log.json</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${log.home}/archives/.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>${log.default_max_history}</maxHistory>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp>
+          <timeZone>UTC</timeZone>
+        </timestamp>
+        <pattern>
+          <pattern>
+            {
+            "severity": "%level",
+            "service": "${springAppName:-}",
+            "trace": "%X{X-B3-TraceId:-}",
+            "span": "%X{X-B3-SpanId:-}",
+            "parent": "%X{X-B3-ParentSpanId:-}",
+            "exportable": "%X{X-Span-Export:-}",
+            "pid": "${PID:-}",
+            "thread": "%thread",
+            "class": "%logger{40}",
+            "rest": "%message"
+            }
+          </pattern>
+        </pattern>
+      </providers>
+    </encoder>
+  </appender>
+  ​
+  <!-- Appender to log to error.log -->
+  <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.home}/error.log</file>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+    <encoder>
+      <pattern>${log.default_pattern}%ex</pattern>
+      <charset>utf8</charset>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${log.home}/archives/error.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>${log.default_max_history}</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <!-- 异步输出 -->
+  <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+    <discardingThreshold>0</discardingThreshold>
+    <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+    <queueSize>512</queueSize>
+    <!-- 添加附加的appender,最多只能添加一个 -->
+    <appender-ref ref="APP"/>
+  </appender>
+
+</included>
